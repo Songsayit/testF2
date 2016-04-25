@@ -74,7 +74,6 @@ public class UartController {
 		
 		//保证串口只能打开一次. 测试时发现ttyS3居然可以打开很多次. 这与我在PC上打开串口的现象不一样. PC机上打开串口只能被一个应用程序占用
 		if (isUartOpen()) {
-			Log.w(TAG, mUartChannel + " has been opened. fd = " + mUartFd);
 			return true;
 		}
 		
@@ -95,7 +94,7 @@ public class UartController {
 		UartJni.uartSetSpeed(mUartFd, mBaudRate);
 		UartJni.uartSetParity(mUartFd, 8, 1, 'N');
 
-		Log.d(TAG, "open " + mUartChannel + " ok, mUartFd = " + mUartFd);
+		Log.d(TAG, "open " + mUartChannel + " ok" + ", baudrate =  " + mBaudRate + ", mUartFd = " + mUartFd);
 
 		return true;
 	}

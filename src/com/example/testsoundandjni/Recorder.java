@@ -134,8 +134,12 @@ public class Recorder implements OnCompletionListener, OnErrorListener {
         
         if (mSampleFile == null) {
             File sampleDir = Environment.getExternalStorageDirectory();
-            if (!sampleDir.canWrite()) // Workaround for broken sdcard support on the device.
-                sampleDir = new File("/sdcard/");
+            if (!sampleDir.canWrite()) {// Workaround for broken sdcard support on the device.
+                sampleDir = new File("/sdcard/F2");
+                if (!sampleDir.exists()) {
+                	sampleDir.mkdirs();
+                }
+            }
             
             try {
                 mSampleFile = File.createTempFile(SAMPLE_PREFIX, extension, sampleDir);
@@ -202,6 +206,8 @@ public class Recorder implements OnCompletionListener, OnErrorListener {
         if( mSampleFile == null ){
         	return ;
         }
+        
+        Log.e(LOG_TAG, "mSampleFile = " + mSampleFile);
         mPlayer = new MediaPlayer();
         try {
             mPlayer.setDataSource(mSampleFile.getAbsolutePath());

@@ -257,36 +257,41 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="打开串口" />
-            
-            <Switch
-                android:id="@+id/switch_hook"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textOn="摘机"
-                android:textOff="挂机"
-                
-                />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/view_dialing_layout"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="电话号码:" />
+                android:orientation="horizontal" >
 
-            <EditText
-                android:id="@+id/etext_dialing_number"
-                android:layout_width="180dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:inputType="phone"
-                android:text="8014" />
+                <Switch
+                    android:id="@+id/switch_hook"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOff="挂机"
+                    android:textOn="摘机" />
 
-            <Button
-                android:id="@+id/button_dialing"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:text="拨打" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="电话号码:" />
+
+                <EditText
+                    android:id="@+id/etext_dialing_number"
+                    android:layout_width="180dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:inputType="phone"
+                    android:text="8014" />
+
+                <Button
+                    android:id="@+id/button_dialing"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:text="拨打" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

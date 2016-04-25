@@ -11,6 +11,16 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.text.TextUtils;
 
+/**
+ * 我们有三条通路需要控制.<p>
+ * 1. downlink handfree -- 下行 免提 <br>
+ * 2. downlink hand -- 下行手持<br>
+ * 3. uplink -- 上行<br>
+ * 这几个跟codec的设置有关. 
+ * 
+ * @author sst
+ *
+ */
 public class BoardHelper {
 
 	private static final String RESERVD_GPIO_STATE_PATH = "/sys/class/switch/rvgpio/state";
@@ -68,6 +78,12 @@ public class BoardHelper {
 
     public void setDownlinkRouteOn(Context context, boolean on) {
     	
+    	setDownlinkHandfreeRouteOn(context, false);
+		setDownlinkHandRouteOn(context, false);
+		if(!on) {
+			return;
+		}
+    	
 		switch (mDownlinkSwitchState) {
 		case auto:
 			boolean headphoneDown = isHeadphoneDown();
@@ -101,27 +117,28 @@ public class BoardHelper {
     }
     
     public boolean isDownlinkRouteOn(Context context) {
-		boolean on = false;
-		switch (mDownlinkSwitchState) {
-		case auto:
-			boolean headphoneDown = isHeadphoneDown();
-        	if (headphoneDown) {
-        		on = isDownlinkHandfreeRouteOn(context);
-        	} else {
-        		on = isDownlinkHandRouteOn(context);
-        	}
-			break;
-		case handfree:
-			on = isDownlinkHandfreeRouteOn(context);
-			break;
-			
-		case hand:
-			on = isDownlinkHandRouteOn(context);
-			break;
-
-		default:
-			break;
-		}
+		boolean on = isDownlinkHandfreeRouteOn(context);
+		on |= isDownlinkHandRouteOn(context);
+//		switch (mDownlinkSwitchState) {
+//		case auto:
+//			boolean headphoneDown = isHeadphoneDown();
+//        	if (headphoneDown) {
+//        		on = isDownlinkHandfreeRouteOn(context);
+//        	} else {
+//        		on = isDownlinkHandRouteOn(context);
+//        	}
+//			break;
+//		case handfree:
+//			on = isDownlinkHandfreeRouteOn(context);
+//			break;
+//			
+//		case hand:
+//			on = isDownlinkHandRouteOn(context);
+//			break;
+//
+//		default:
+//			break;
+//		}
 		
 		return on;
     }
@@ -268,7 +285,7 @@ public class BoardHelper {
     }
     
     public int getMediaMaxVolume(Context context) {
-    	return getModeStreamVolume(context, AudioManager.STREAM_MUSIC);
+    	return getModeStreamMaxVolume(context, AudioManager.STREAM_MUSIC);
     }
     
     public void setMediaVolume(Context context, int vol) {
@@ -301,6 +318,16 @@ public class BoardHelper {
     	return down;
     }
     
+    /**
+     * 设置route通断
+     * @param context
+     * @param modeStream  one of following:<br>
+     * {@link MODE_STREAM_DOWNLINK_HANDFREE}<br>
+     * {@link MODE_STREAM_DOWNLINK_HAND}<br>
+     * {@link MODE_STREAM_UPLINK}<br>
+     * @param on<p>
+     * true: 设置route导通; false: 设置route断开
+     */
     private void setModeStreamRouteOn(Context context, int modeStream, boolean on) {
     	AudioManager am = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
     	if (am == null) {
@@ -310,6 +337,16 @@ public class BoardHelper {
     	am.setRouting(modeStream, on ? 1 : 0, 0);
     }
     
+    /**
+     * 获取route断通状态 ?
+     * @param context
+     * @param modeStream  one of following:<br>
+     * {@link MODE_STREAM_DOWNLINK_HANDFREE}<br>
+     * {@link MODE_STREAM_DOWNLINK_HAND}<br>
+     * {@link MODE_STREAM_UPLINK}<br>
+     * @return
+     * true: 通; false:断开
+     */
     private boolean getModeStreamRoute(Context context, int modeStream) {
     	AudioManager am = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
     	if (am == null) {

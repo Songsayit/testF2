@@ -49,7 +49,7 @@ public class UartJni {
 	 * @param name (如/dev/ttyS0,/dev/ttyS1)
 	 * @return fd---文件句柄
 	 * 
-	 * 参考:fd = openUartChannel("/dev/ttyS0")
+	 * 参考:fd = openUartChannel("/dev/ttyS1")
 	 */
 	public static native int openUartChannel(String name);
 	

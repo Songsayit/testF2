@@ -1,23 +1,11 @@
 ﻿package com.example.testsoundandjni;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-
-import org.simple.eventbus.EventBus;
-import org.simple.eventbus.Subscriber;
 
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioRecord;
-import android.media.AudioTrack;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.media.MediaPlayer.OnCompletionListener;
-import android.media.MediaPlayer.OnErrorListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -25,9 +13,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -48,24 +33,11 @@ import com.htfyun.utils.DownlinkSwitchState;
 public class MainActivity extends Activity implements OnStateChangedListener {
 
 	private static final String TAG = "MainActivity";
-	/**
-	 * 更新听筒状态view
-	 */
-	public static final int MSG_UPDATE_VIEW_HEADSET_STATUS = 0;
-	/**
-	 * 手柄到免提时，先关闭电话模式，再打开
-	 */
-	public static final int MSG_PHONE_STATUS_CHANGE = 2;
 	
 	/**
 	 * 录音状态， false 未录音， true 录音中
 	 */
 	private boolean isRecording = false;
-	/**
-	 * 电话摘机状态， false 挂机， true 摘机
-	 */
-	private boolean m_booleanHookOff = false;
-
 	/**
 	 * 录音
 	 */
@@ -117,20 +89,13 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
 		
-		mContext = this;
-
-		// EventBus.getDefault().register(this);
-		//
-		// tviewComData = (TextView) findViewById(R.id.tview_com_read_data);
-		
-		
+		 mContext = this;
 		
 		 initNormalVolume();
 		 initHeadPhoneStatus();
 		 initDownlinkRouteSwitch();
-		// initAudio();
-		// initRecord();
-		// initDialing();
+		 initRecord();
+		 initDialing();
 	}
 	
 	/**
@@ -140,7 +105,6 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 		
 		 mBtnDownlinkVolumeAdd = (Button) findViewById(R.id.btn_downlink_add);
 		 mBtnDownlinkVolumeSub = (Button) findViewById(R.id.btn_downlink_sub);
-		 Log.e("song", "R.id.btn_downlink_sub = " + R.id.btn_downlink_sub );
 		 mTxtDownlinkVolume  = (TextView) findViewById(R.id.txt_downlink_volume);
 		 
 		 mTxtDownlinkVolume.setText("" + BoardHelper.getInstance().getDownlinkVolume(mContext));
@@ -206,6 +170,8 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 					curDLVolume = maxDLVolume;
 				}
 				
+				Log.e(TAG, "maxDLVolume = " + maxDLVolume + ", DownlinkVolume = " + BoardHelper.getInstance().getDownlinkVolume(mContext));
+				
 				BoardHelper.getInstance().setDownlinkVolume(mContext, curDLVolume);
 				mTxtDownlinkVolume.setText("" + BoardHelper.getInstance().getDownlinkVolume(mContext));
 				
@@ -237,8 +203,9 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 				
 				int curULVolume = BoardHelper.getInstance().getUplinkVolume(mContext);
 				curULVolume -- ;
+				
 				int minULVolume = 0;
-				if (curULVolume > minULVolume) {
+				if (curULVolume < minULVolume) {
 					curULVolume = minULVolume;
 				}
 				
@@ -255,7 +222,7 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 					curMDVolume = maxMDVolume;
 				}
 				
-				BoardHelper.getInstance().setUplinkVolume(mContext, curMDVolume);
+				BoardHelper.getInstance().setMediaVolume(mContext, curMDVolume);
 				mTxtMediaVolume.setText("" + BoardHelper.getInstance().getMediaVolume(mContext));
 				
 				
@@ -268,9 +235,8 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 					curMDVolume = minMDVolume;
 				}
 				
-				BoardHelper.getInstance().setUplinkVolume(mContext, curMDVolume);
+				BoardHelper.getInstance().setMediaVolume(mContext, curMDVolume);
 				mTxtMediaVolume.setText("" + BoardHelper.getInstance().getMediaVolume(mContext));
-				
 				
 			}
 		}
@@ -296,7 +262,13 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 							
 						}
 						
+						boolean isRouteOn = BoardHelper.getInstance().isDownlinkRouteOn(mContext);
+						
 						BoardHelper.getInstance().setDownlinkSwitchState(state);
+						
+						if (isRouteOn) {
+							BoardHelper.getInstance().setDownlinkRouteOn(mContext, true);
+						}
 						
 						mTxtDownlinkVolume.setText("" + BoardHelper.getInstance().getDownlinkVolume(mContext));
 						
@@ -310,7 +282,7 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 	 * 录音初始化
 	 */
 
-	public void initRecord() {
+	private void initRecord() {
 		
 		mRecorder = new Recorder(); // 录音类初始化
 		mRecorder.setOnStateChangedListener(this);
@@ -321,7 +293,7 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 		
 		mBtnRecord.setOnClickListener(mRecordOnClickListener);
 		mBtnPlayRecord.setOnClickListener(mRecordOnClickListener);
-		mBtnPlayRecord.setOnClickListener(mRecordOnClickListener);
+		mBtnPlayBgMusic.setOnClickListener(mRecordOnClickListener);
 	}
 	
 	private View.OnClickListener mRecordOnClickListener = new View.OnClickListener() {
@@ -420,6 +392,8 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 	
 	private EditText mEdittxtDialingNumber;
 	
+	private View mLayoutDialing;
+	
 	private TextView mTxtUartReadData;
 	
 	private final String UART_CHANNEL = "/dev/ttyS1";
@@ -433,8 +407,10 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 				android.R.layout.simple_spinner_item, mUartBaudRateArray);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mSpinnerUartBaudRate.setAdapter(adapter);
+		mSpinnerUartBaudRate.setSelection(9);
 		
 		mBtnUart = (Button)findViewById(R.id.button_uart);
+		mLayoutDialing = findViewById(R.id.view_dialing_layout);
 		mSwitchHook = (Switch) findViewById(R.id.switch_hook);
 		mBtnDialing = (Button) findViewById(R.id.button_dialing);
 		
@@ -447,16 +423,18 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 		mSwitchHook.setOnCheckedChangeListener(mHookOnCheckedChangeListener);
 		
 		showUartOpenText(true);
+		
+		BoardHelper.getInstance().setDownlinkRouteOn(mContext, false);
 	}
 	
 	private void showUartOpenText(boolean open) {
 		mBtnUart.setText("关闭串口");
+		int visibility = View.VISIBLE;
 		if (open) {
 			mBtnUart.setText("打开串口");
+			visibility = View.INVISIBLE;
 		}
-		
-		mSwitchHook.setEnabled(!open);
-		mBtnDialing.setEnabled(!open);
+		mLayoutDialing.setVisibility(visibility);
 	}
 	
 	private boolean sendUartCmd(byte[] cmd, int length) {
@@ -479,16 +457,22 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 					byte[] cmd = "ATH\r\n".getBytes();
 					String action = "挂机";
 					
+					boolean routeOn = false;
+					
 					if (isChecked) {
 						cmd = "ATZ\r\n".getBytes();
 						action = "摘机";
+						routeOn = true;
 					}
 					
+					BoardHelper.getInstance().setDownlinkRouteOn(mContext, routeOn);
+					BoardHelper.getInstance().setUplinkRouteOn(mContext, routeOn);
+					
 					if (sendUartCmd(cmd, cmd.length)) {
-						Toast.makeText(MainActivity.this, action + "命令发送成功!",
+						Toast.makeText(mContext, action + "命令发送成功!",
 								Toast.LENGTH_SHORT).show();
 					} else {
-						Toast.makeText(MainActivity.this, action + "命令发送失败!",
+						Toast.makeText(mContext, action + "命令发送失败!",
 								Toast.LENGTH_SHORT).show();
 					}
 					
@@ -544,7 +528,7 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 				String tempNumber = mEdittxtDialingNumber.getText().toString().trim();
 				
 				if (TextUtils.isEmpty(tempNumber)) {
-					Toast.makeText(MainActivity.this, "号码不能为空。",
+					Toast.makeText(mContext, "号码不能为空。",
 							Toast.LENGTH_SHORT).show();
 					return;
 				}
@@ -554,11 +538,11 @@ public class MainActivity extends Activity implements OnStateChangedListener {
 
 				boolean sendOk = sendUartCmd(number.getBytes(), number.length());
 				
-				String show = tempNumber + " 拨号失败!,  发送字节数 ";
+				String show = tempNumber + " 拨号失败! ";
 				if (sendOk) {
-					show = tempNumber + " 拨号成功!,  发送字节数 ";
+					show = tempNumber + " 拨号成功! ";
 				}
-				Toast.makeText(MainActivity.this, show, Toast.LENGTH_SHORT)
+				Toast.makeText(mContext, show, Toast.LENGTH_SHORT)
 						.show();
 			}
 		}
